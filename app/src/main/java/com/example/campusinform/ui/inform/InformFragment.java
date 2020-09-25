@@ -39,6 +39,7 @@ public class InformFragment extends Fragment {
 //                textView.setText(s);
 //            }
 //        });
+
         editTextUser = root.findViewById(R.id.editTextTextPersonName);
         editTextPass = root.findViewById(R.id.editTextTextPassword);
 
@@ -56,17 +57,22 @@ public class InformFragment extends Fragment {
                     System.out.println("Debug start");
                     SharedPreferences sharedPreferences = getActivity().getSharedPreferences("Account", Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString("username", username);
-                    editor.putString("password", passwrod);
-                    editor.apply();
+
                     try {
                         SpiderThread spider = new SpiderThread(username, passwrod);
                         spider.start();
                         spider.join();
+                        if(spider.result.size() == 0) throw new Exception();
+                        editor.putString("username", username);
+                        editor.putString("password", passwrod);
+                        editor.apply();
                         saveTableData(spider.result);
+                        Toast.makeText(getActivity(), "登录成功！", Toast.LENGTH_SHORT).show();
                     } catch (InterruptedException e) {
 //                        System.out.println("网络不佳或账号密码错误！");
-                        Toast.makeText(getActivity(), "网络不佳或账号密码错误！", Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        Toast.makeText(getActivity(), "账号密码错误！", Toast.LENGTH_SHORT).show();
                         e.printStackTrace();
                     }
                     System.out.println("Debug end");
@@ -83,21 +89,7 @@ public class InformFragment extends Fragment {
         for(int i = 0; i < result.size(); i++) {
             String course = result.get(i);
             editor.putString(Integer.toString(i), course);
-
             System.out.println(course);
-//            switch (course.get(1)) {
-//                case "一": day = 1; break;
-//                case "二": day = 2; break;
-//                case "三": day = 3; break;
-//                case "四": day = 4; break;
-//                case "五": day = 5; break;
-//                case "六": day = 6; break;
-//                case "日": day = 7; break;
-//            }
-//            int start = Integer.parseInt(course.get(2));
-//            int end = Integer.parseInt(course.get(3));
-//            System.out.println(course.get(0) + " - " + course.get(4) + " : " + day);
-//            courses.add(new Course(course.get(0), course.get(4), day, start, end));
         }
         editor.apply();
     }

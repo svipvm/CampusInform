@@ -55,6 +55,7 @@ public class Spider {
 ////                System.out.println("");
 //            }
             lesson.add(goal);
+
         }
 //        for(String s : lesson) {
 //            System.out.println(s);
@@ -143,12 +144,14 @@ public class Spider {
         out.flush();
         out.close();
 
+
         String cookie = connection.getHeaderField("set-cookie");
         String pattern = "(\\S+)";
         Pattern p = Pattern.compile(pattern);
         Matcher m = p.matcher(cookie);
         if(m.find()) {
             cookie = m.group(0);
+            connection.disconnect();
             return cookie;
 //            System.out.println(m.group(0));
         } else {
@@ -156,12 +159,12 @@ public class Spider {
         }
 //        System.out.println(cookie);
 
+
         int responseCode = connection.getResponseCode();
         if(responseCode != HttpURLConnection.HTTP_OK){
-            System.out.println("ERROR!");
+            throw new IOException();
         }
 
-        connection.disconnect();
         return "";
     }
 

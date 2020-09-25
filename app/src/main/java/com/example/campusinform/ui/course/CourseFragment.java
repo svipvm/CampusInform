@@ -15,11 +15,13 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.example.campusinform.Course;
 import com.example.campusinform.R;
+import com.example.campusinform.ui.inform.SpiderThread;
 
 import java.util.ArrayList;
 import java.util.regex.Matcher;
@@ -39,30 +41,55 @@ public class CourseFragment extends Fragment {
                 ViewModelProviders.of(this).get(CourseViewModel.class);
         final View root = inflater.inflate(R.layout.fragment_course, container, false);
 
-
-
-//        final TextView textView = root.findViewById(R.id.textView);
-//        courseViewModel.getCourses().observe(getViewLifecycleOwner(), new Observer<ArrayList<Course>>() {
-//            @Override
-//            public void onChanged(@Nullable ArrayList<Course> courses) {
-//                assert courses != null;
-//                for(int i = 0; i < courses.size(); i++) {
-//                    createItemCourseView(root, courses.get(i));
-//                }
-////                textView.setText(s);
-//            }
-//        });
-
-
 //        Course[] courses = new Course[3];
 //        courses[0] = new Course("数学", "刘某", "教学#123", 1, 3, 4);
 //        courses[1] = new Course("语文", "张某", "实训#543", 3, 7, 8);
 //        courses[2] = new Course("英语", "潘某", "教学#348", 5, 5, 6);
 
+
+        checkUpdata();
+
         createHardLeftView(root);
         getDataAndCreate(root);
 
         return root;
+    }
+
+    private void checkUpdata() {
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("Account", Context.MODE_PRIVATE);
+        String username = sharedPreferences.getString("username", "");
+        String passwrod = sharedPreferences.getString("password", "");
+        if("".equals(username)) {
+            Toast.makeText(getActivity(), "请登录！", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        try {
+            SpiderThread spider = new SpiderThread(username, passwrod);
+            spider.start();
+            spider.join();
+            if(spider.result.size() == 0) throw new Exception();
+            saveTableData(spider.result);
+            Toast.makeText(getActivity(), "信息更新完成！", Toast.LENGTH_SHORT).show();
+        } catch (InterruptedException e) {
+//            System.out.println("网络不佳或账号密码错误！");
+//            Toast.makeText(getActivity(), "网络不佳或账号密码错误！", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        } catch (Exception e) {
+            Toast.makeText(getActivity(), "账号密码错误！", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+    }
+
+    private void saveTableData(ArrayList<String> result) {
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("Data", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        for(int i = 0; i < result.size(); i++) {
+            String course = result.get(i);
+            editor.putString(Integer.toString(i), course);
+            System.out.println(course);
+        }
+        editor.apply();
     }
 
     private void getDataAndCreate(View root) {
