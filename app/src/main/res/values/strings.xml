@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">CompusInform</string>
+    <string name="title_course">Course</string>
+    <string name="title_score">Score</string>
+    <string name="title_inform">Inform</string>
+</resources>
